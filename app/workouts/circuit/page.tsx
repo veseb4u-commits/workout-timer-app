@@ -46,14 +46,13 @@ export default async function CircuitWorkouts() {
           {workouts?.map((workout) => (
             <Link key={workout.id} href={`/workouts/${workout.id}`}>
               <div className="bg-gray-800/80 rounded-lg p-6 shadow-xl hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-300 cursor-pointer backdrop-blur-sm [-webkit-tap-highlight-color:transparent]">
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="text-2xl font-bold text-white mb-4">
                   {workout.name}
                 </h2>
-                <p className="text-gray-100 mb-4">{workout.description}</p>
 
                 {/* Exercise List */}
                 {workout.exercises && workout.exercises.length > 0 && (
-                  <div className="mb-4">
+                  <div>
                     <p className="text-white text-sm mb-2">Exercises:</p>
                     <div className="flex flex-wrap gap-2">
                       {workout.exercises
@@ -67,18 +66,6 @@ export default async function CircuitWorkouts() {
                     </div>
                   </div>
                 )}
-
-                {/* Level Info */}
-                <div className="flex gap-3 flex-wrap">
-                  {workout.workout_levels?.map((level: any) => (
-                    <span
-                      key={level.level}
-                      className="text-purple-200 text-sm"
-                    >
-                      Level {level.level}: {level.sets} sets • {level.estimated_time}
-                    </span>
-                  ))}
-                </div>
               </div>
             </Link>
           ))}

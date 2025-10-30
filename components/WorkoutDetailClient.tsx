@@ -17,6 +17,8 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
   const [selectedRest, setSelectedRest] = useState(120)
   const [isFavorite, setIsFavorite] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showTimeline, setShowTimeline] = useState(false)
+  const [visibleExercises, setVisibleExercises] = useState(0)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -143,21 +145,16 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
         {/* Instruction Text */}
         <div className="text-center">
           <p className="text-2xl text-white font-bold">
-            {workout.type === 'circuit'
-              ? 'Select the level and rest between sets'
-              : 'Rep-based or timed exercises at your own pace'
-            }
+            Build workout timer
           </p>
         </div>
 
         <div className="bg-gray-800 rounded-2xl p-6 shadow-2xl mb-6">
-          <p className="text-gray-300 text-base mb-6">{workout.description}</p>
-
-          <div className="flex gap-2 mb-6">
-            <span className="px-3 py-1 bg-purple-900/50 text-purple-200 rounded-full text-sm">
+          <div className="flex gap-3 mb-6 text-purple-200 text-sm">
+            <span>
               {workout.type === 'circuit' ? '⚡ Circuit/HIIT' : '💪 Classic'}
             </span>
-            <span className="px-3 py-1 bg-purple-900/50 text-purple-200 rounded-full text-sm">
+            <span>
               {workout.is_time_based ? '⏱️ Time-Based' : '🔢 Rep-Based'}
             </span>
           </div>
@@ -165,21 +162,20 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
           {workout.has_levels && levels.length > 0 && (
             <>
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-white mb-3">Select Level:</h2>
-                <div className="grid grid-cols-3 gap-4">
-                  {levels.map((level: any) => (
+                <h2 className="text-xl font-bold text-white mb-3">Select Sets:</h2>
+                <div className="inline-flex rounded-lg overflow-hidden border-2 border-purple-700 w-full">
+                  {levels.map((level: any, index: number) => (
                     <button
                       key={level.level}
                       onClick={() => setSelectedLevel(level.level)}
-                      className={`rounded-xl p-4 text-center transition-all cursor-pointer border-2 ${
+                      className={`flex-1 py-3 px-4 text-center transition-all ${
                         selectedLevel === level.level
-                          ? 'bg-purple-700 border-purple-400'
-                          : 'bg-purple-950 border-purple-800 hover:bg-purple-900 hover:border-purple-600'
-                      }`}
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      } ${index !== 0 ? 'border-l-2 border-purple-700' : ''}`}
                     >
-                      <div className="text-2xl font-bold text-purple-200">{level.level}</div>
-                      <div className="text-sm text-gray-300">{level.sets} sets</div>
-                      <div className="text-xs text-gray-400 mt-1">{level.estimated_time}</div>
+                      <div className="text-lg font-bold">Level {level.level}</div>
+                      <div className="text-xs mt-1">{level.sets} sets • {level.estimated_time}</div>
                     </button>
                   ))}
                 </div>
@@ -187,29 +183,120 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
 
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-white mb-3">⚙️ Rest Between Sets:</h2>
-                <div className="grid grid-cols-3 gap-4">
-                  {[30, 60, 120].map((duration) => (
+                <div className="inline-flex rounded-lg overflow-hidden border-2 border-purple-700 w-full">
+                  {[30, 60, 120].map((duration, index) => (
                     <button
                       key={duration}
                       onClick={() => setSelectedRest(duration)}
-                      className={`rounded-xl p-4 text-center transition-all cursor-pointer border-2 ${
+                      className={`flex-1 py-3 px-4 text-center transition-all ${
                         selectedRest === duration
-                          ? 'bg-purple-600 border-purple-400'
-                          : 'bg-purple-900 border-purple-700 hover:bg-purple-800 hover:border-purple-500'
-                      }`}
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      } ${index !== 0 ? 'border-l-2 border-purple-700' : ''}`}
                     >
-                      <div className="text-lg font-bold text-purple-100">{duration} sec</div>
-                      {duration === 120 && <div className="text-xs text-gray-300 mt-1">(default)</div>}
+                      <div className="text-base font-bold">{duration} sec</div>
+                      {duration === 120 && <div className="text-xs mt-1">(default)</div>}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <Link href={`/play/${workout.id}?level=${selectedLevel}&rest=${selectedRest}`}>
-                <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg hover:shadow-xl transition-all">
-                  START WORKOUT
+              {!showTimeline ? (
+                <button
+                  onClick={() => {
+                    setShowTimeline(true)
+                    setVisibleExercises(0)
+                    // Animate exercises appearing one by one (only first set + rest)
+                    const totalItems = exercises.length + 1 // exercises + 1 rest period
+
+                    let count = 0
+                    const interval = setInterval(() => {
+                      count++
+                      setVisibleExercises(count)
+                      if (count >= totalItems) {
+                        clearInterval(interval)
+                      }
+                    }, 200) // Each item appears after 200ms
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg hover:shadow-xl transition-all"
+                >
+                  Preview Workout
                 </button>
-              </Link>
+              ) : (
+                <>
+                  {/* Timeline */}
+                  <div className="mb-6 p-4 bg-gray-900/50 rounded-xl">
+                    <h3 className="text-lg font-bold text-white mb-4">Workout Timeline</h3>
+                    <div className="relative space-y-3">
+                      {/* Continuous vertical timeline line */}
+                      <div
+                        className="absolute left-4 top-8 w-0.5 bg-purple-600 transition-all duration-300"
+                        style={{
+                          height: `${Math.max(0, (visibleExercises - 1) * 76 + (visibleExercises > exercises.length ? 76 : 0))}px`
+                        }}
+                      />
+
+                      {/* Only show first set exercises */}
+                      {exercises.map((exercise: any, exIndex: number) => {
+                        if (exIndex < visibleExercises) {
+                          return (
+                            <div key={`ex-${exIndex}`} className="relative flex items-center gap-3 animate-fade-in">
+                              <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold relative z-10">
+                                {exIndex + 1}
+                              </div>
+                              <div className="flex-1 bg-purple-700/30 rounded-lg p-3">
+                                <p className="text-white font-medium">{exercise.name}</p>
+                                <p className="text-purple-200 text-xs mt-1">
+                                  {exercise.duration ? `${exercise.duration} sec` : exercise.reps ? `${exercise.reps} reps` : 'Time-based'}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        }
+                        return null
+                      })}
+
+                      {/* Show rest period after exercises */}
+                      {visibleExercises > exercises.length && (
+                        <div className="relative flex items-center gap-3 animate-fade-in">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs relative z-10">
+                            ⏸
+                          </div>
+                          <div className="flex-1 bg-blue-600/20 rounded-lg p-3 border-l-4 border-blue-500">
+                            <p className="text-blue-200 font-medium">Rest</p>
+                            <p className="text-blue-300 text-xs mt-1">{selectedRest} seconds</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Summary */}
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Total Sets:</span>
+                        <span className="text-white font-bold">{levels.find((l: any) => l.level === selectedLevel)?.sets || 3}</span>
+                      </div>
+                      <div className="flex justify-between text-sm mt-2">
+                        <span className="text-gray-400">Rest Between Sets:</span>
+                        <span className="text-white font-bold">{selectedRest} sec</span>
+                      </div>
+                      <div className="flex justify-between text-sm mt-2">
+                        <span className="text-gray-400">Estimated Time:</span>
+                        <span className="text-white font-bold">{levels.find((l: any) => l.level === selectedLevel)?.estimated_time || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* START WORKOUT button appears after timeline is built */}
+                  {visibleExercises > exercises.length && (
+                    <Link href={`/play/${workout.id}?level=${selectedLevel}&rest=${selectedRest}`}>
+                      <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg hover:shadow-xl transition-all animate-fade-in">
+                        START WORKOUT
+                      </button>
+                    </Link>
+                  )}
+                </>
+              )}
             </>
           )}
 
@@ -220,21 +307,6 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
               </button>
             </Link>
           )}
-
-          <div className="mt-8">
-            <h2 className="text-xl font-bold text-white mb-4">Exercises ({exercises.length}):</h2>
-            <div className="space-y-2">
-              {exercises.map((exercise: any, index: number) => (
-                <div key={exercise.id} className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg">
-                  <span className="text-purple-400 font-bold text-lg w-8">{index + 1}.</span>
-                  <span className="flex-1 font-medium text-gray-200">{exercise.name}</span>
-                  <span className="text-gray-300 font-medium">
-                    {exercise.duration ? `${exercise.duration}s` : `${exercise.reps} reps`}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
         </div>
       </div>
