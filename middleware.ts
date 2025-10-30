@@ -7,7 +7,7 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 export function middleware(request: NextRequest) {
   // Only rate limit auth endpoints
   if (request.nextUrl.pathname.startsWith('/auth/')) {
-    const ip = request.ip || 'anonymous'
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'anonymous'
     const now = Date.now()
     const windowMs = 15 * 60 * 1000 // 15 minutes
     const maxRequests = 5 // Max 5 login attempts per 15 minutes
