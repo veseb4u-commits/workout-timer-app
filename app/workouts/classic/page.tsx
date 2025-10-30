@@ -5,7 +5,7 @@ export default async function ClassicWorkouts() {
   // Fetch classic workouts from database
   const { data: workouts } = await supabase
     .from('workouts')
-    .select('*')
+    .select('*, exercises(*)')
     .eq('type', 'classic')
     .order('name')
 
@@ -44,6 +44,23 @@ export default async function ClassicWorkouts() {
                   {workout.name}
                 </h2>
                 <p className="text-gray-100 mb-4">{workout.description}</p>
+
+                {/* Exercise List */}
+                {workout.exercises && workout.exercises.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-white text-sm mb-2">Exercises:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {workout.exercises
+                        .sort((a: any, b: any) => (a.exercise_order || 0) - (b.exercise_order || 0))
+                        .map((ex: any, idx: number) => (
+                          <span key={ex.id}>
+                            <span className="text-white text-xs">{ex.name}</span>
+                            {idx < workout.exercises.length - 1 && <span className="text-white text-xs ml-2">•</span>}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3">
                   <span className="text-green-200 text-sm">
