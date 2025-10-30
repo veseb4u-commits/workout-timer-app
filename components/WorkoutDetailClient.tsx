@@ -19,6 +19,9 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
   const [loading, setLoading] = useState(false)
   const [showTimeline, setShowTimeline] = useState(false)
   const [visibleExercises, setVisibleExercises] = useState(0)
+  const [previewLevel, setPreviewLevel] = useState<number | null>(null)
+  const [previewRest, setPreviewRest] = useState<number | null>(null)
+  const [settingsChanged, setSettingsChanged] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -167,7 +170,12 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
                   {levels.map((level: any, index: number) => (
                     <button
                       key={level.level}
-                      onClick={() => setSelectedLevel(level.level)}
+                      onClick={() => {
+                        setSelectedLevel(level.level)
+                        if (showTimeline && previewLevel !== null && level.level !== previewLevel) {
+                          setSettingsChanged(true)
+                        }
+                      }}
                       className={`flex-1 py-3 px-4 text-center transition-all ${
                         selectedLevel === level.level
                           ? 'bg-purple-600 text-white'
@@ -187,7 +195,12 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
                   {[30, 60, 120].map((duration, index) => (
                     <button
                       key={duration}
-                      onClick={() => setSelectedRest(duration)}
+                      onClick={() => {
+                        setSelectedRest(duration)
+                        if (showTimeline && previewRest !== null && duration !== previewRest) {
+                          setSettingsChanged(true)
+                        }
+                      }}
                       className={`flex-1 py-3 px-4 text-center transition-all ${
                         selectedRest === duration
                           ? 'bg-purple-600 text-white'
@@ -206,6 +219,9 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
                   onClick={() => {
                     setShowTimeline(true)
                     setVisibleExercises(0)
+                    setPreviewLevel(selectedLevel)
+                    setPreviewRest(selectedRest)
+                    setSettingsChanged(false)
                     // Animate exercises appearing one by one (only first set + rest)
                     const totalItems = exercises.length + 1 // exercises + 1 rest period
 
@@ -224,6 +240,45 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
                 </button>
               ) : (
                 <>
+                  {/* Settings changed banner */}
+                  {settingsChanged && (
+                    <div className="mb-4 p-4 bg-yellow-500/20 border-2 border-yellow-500 rounded-lg flex items-center justify-between animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">⚠️</span>
+                        <div>
+                          <p className="text-yellow-200 font-semibold">Settings changed</p>
+                          <p className="text-yellow-300 text-sm">The preview below reflects previous settings</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowTimeline(false)
+                          setSettingsChanged(false)
+                          // Trigger preview rebuild
+                          setTimeout(() => {
+                            setShowTimeline(true)
+                            setVisibleExercises(0)
+                            setPreviewLevel(selectedLevel)
+                            setPreviewRest(selectedRest)
+                            const totalItems = exercises.length + 1
+                            let count = 0
+                            const interval = setInterval(() => {
+                              count++
+                              setVisibleExercises(count)
+                              if (count >= totalItems) {
+                                clearInterval(interval)
+                              }
+                            }, 200)
+                          }, 50)
+                        }}
+                        className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg transition-all whitespace-nowrap"
+                      >
+                        Rebuild Preview
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Timeline */}
                   {/* Timeline */}
                   <div className="mb-6 p-4 bg-gray-900/50 rounded-xl">
                     <h3 className="text-lg font-bold text-white mb-4">Workout Timeline</h3>
