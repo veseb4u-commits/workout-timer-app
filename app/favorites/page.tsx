@@ -62,10 +62,10 @@ export default function FavoritesPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+        <div className="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔒</div>
-          <h1 className="text-3xl font-bold mb-4">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-3xl font-bold text-white mb-4">Sign In Required</h1>
+          <p className="text-gray-300 mb-6">
             You need to be signed in to view your favorite workouts.
           </p>
           <Link href="/login">
@@ -95,10 +95,10 @@ export default function FavoritesPage() {
         <p className="text-purple-200 mb-8">Your saved workouts</p>
 
         {favorites.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center">
+          <div className="bg-gray-800 rounded-2xl p-12 text-center">
             <div className="text-6xl mb-4">📭</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">No favorites yet</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">No favorites yet</h2>
+            <p className="text-gray-300 mb-6">
               Start by adding workouts to your favorites!
             </p>
             <div className="flex gap-4 justify-center">
@@ -122,21 +122,21 @@ export default function FavoritesPage() {
 
               return (
                 <Link key={fav.id} href={`/workouts/${workout.id}`}>
-                  <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-purple-500/50 hover:scale-[1.02] transition-all cursor-pointer">
+                  <div className="bg-gray-800 rounded-2xl p-6 shadow-xl hover:shadow-purple-500/50 hover:scale-[1.02] transition-all cursor-pointer">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                        <h2 className="text-2xl font-bold text-white mb-2">
                           {workout.name}
                         </h2>
-                        <p className="text-gray-600 mb-3">{workout.description}</p>
+                        <p className="text-gray-300 mb-3">{workout.description}</p>
                         <div className="flex gap-2 flex-wrap">
-                          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                          <span className="px-3 py-1 bg-purple-900 text-purple-200 rounded-full text-sm font-medium">
                             {workout.type === 'circuit' ? '⚡ Circuit/HIIT' : '💪 Classic'}
                           </span>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                          <span className="px-3 py-1 bg-blue-900 text-blue-200 rounded-full text-sm font-medium">
                             {workout.is_time_based ? '⏱️ Time-Based' : '🔢 Rep-Based'}
                           </span>
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                          <span className="px-3 py-1 bg-gray-700 text-gray-200 rounded-full text-sm">
                             {workout.exercises?.length || 0} exercises
                           </span>
                         </div>
