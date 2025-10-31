@@ -7,15 +7,55 @@ import { supabase } from '@/lib/supabase'
 
 // Wake Lock for keeping screen on
 let wakeLock: any = null
+let audioContext: AudioContext | null = null
+let oscillator: OscillatorNode | null = null
+let gainNode: GainNode | null = null
 
 async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
       wakeLock = await (navigator as any).wakeLock.request('screen')
       console.log('Wake Lock activated')
+    } else {
+      // Fallback for iOS: use silent audio
+      startSilentAudio()
     }
   } catch (err) {
     console.log('Wake Lock error:', err)
+    // Fallback for iOS
+    startSilentAudio()
+  }
+}
+
+function startSilentAudio() {
+  try {
+    if (typeof window === 'undefined') return
+    if (audioContext) return // Already started
+
+    // Create audio context (works on iOS)
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    audioContext = new AudioContextClass()
+
+    // Create a very low frequency oscillator (inaudible)
+    oscillator = audioContext.createOscillator()
+    gainNode = audioContext.createGain()
+
+    // Set frequency to 20Hz (below human hearing range of ~20Hz-20kHz)
+    oscillator.frequency.value = 20
+
+    // Set to extremely low volume (essentially silent)
+    gainNode.gain.value = 0.001
+
+    // Connect nodes
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    // Start the oscillator
+    oscillator.start()
+
+    console.log('Silent audio started for iOS wake lock')
+  } catch (err) {
+    console.log('Silent audio error:', err)
   }
 }
 
@@ -24,6 +64,21 @@ function releaseWakeLock() {
     wakeLock.release()
     wakeLock = null
     console.log('Wake Lock released')
+  }
+
+  // Stop silent audio
+  if (oscillator) {
+    oscillator.stop()
+    oscillator.disconnect()
+    oscillator = null
+  }
+  if (gainNode) {
+    gainNode.disconnect()
+    gainNode = null
+  }
+  if (audioContext) {
+    audioContext.close()
+    audioContext = null
   }
 }
 
@@ -71,6 +126,12 @@ function speak(text: string, skipCancel = false) {
     utterance.rate = 1.0
     utterance.pitch = 1.0
     utterance.volume = 1.0
+
+    // iOS fix: Resume audio context if suspended
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume()
+    }
+
     window.speechSynthesis.speak(utterance)
   }
 }
@@ -288,14 +349,14 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
 
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-800 flex items-center justify-center p-6">
         <div className="text-center text-white">
           <div className="text-8xl mb-8">🎉</div>
           <h1 className="text-5xl font-bold mb-4">WORKOUT COMPLETE!</h1>
           <p className="text-2xl mb-8">Great job!</p>
           <button
             onClick={handleQuit}
-            className="bg-white text-green-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-green-50 transition-all"
+            className="bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 px-8 py-4 rounded-xl font-bold text-xl hover:bg-green-50 dark:hover:bg-gray-700 transition-all"
           >
             Back to Home
           </button>
@@ -306,7 +367,7 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
 
   if (isGetReady) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-800 flex items-center justify-center p-6">
         <div className="text-center text-white">
           <h1 className="text-4xl font-bold mb-8">GET READY</h1>
           <div className="relative inline-block mb-8">
@@ -321,7 +382,7 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
 
   if (isResting) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-800 flex items-center justify-center p-6">
         <div className="text-center text-white">
           <h1 className="text-4xl font-bold mb-8">REST</h1>
           <div className="text-9xl font-bold mb-8">{formatTime(timeLeft)}</div>
@@ -336,7 +397,7 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
             </button>
             <button
               onClick={handleSkipRest}
-              className="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all"
+              className="bg-orange-500 dark:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 dark:hover:bg-orange-700 transition-all"
             >
               ⏭️ SKIP REST
             </button>
@@ -347,16 +408,20 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex flex-col">
-      <div className="bg-white/10 backdrop-blur p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 dark:from-purple-700 dark:to-purple-950 flex flex-col">
+      <div className="bg-white/10 dark:bg-black/20 backdrop-blur p-4">
         <div className="max-w-4xl mx-auto flex justify-between items-center text-white">
           <div>Round {currentRound} of {totalRounds}</div>
           <div>Exercise {currentExerciseIndex + 1} of {totalExercises}</div>
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className="bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition-all"
+            className="bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition-all relative group"
+            title={voiceEnabled ? 'Voice guidance enabled' : 'Voice guidance disabled'}
           >
             {voiceEnabled ? '🔊' : '🔇'}
+            <span className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Toggle voice guidance
+            </span>
           </button>
         </div>
       </div>
@@ -366,7 +431,7 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
           <h1 className="text-5xl font-bold mb-12 uppercase">
             {currentExercise.name}
           </h1>
-          
+
           {currentExercise.duration ? (
             <div className="text-9xl font-bold mb-12">
               :{timeLeft.toString().padStart(2, '0')}
@@ -393,17 +458,17 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
             >
               {isPaused ? '▶️ RESUME' : '⏸️ PAUSE'}
             </button>
-            
+
             <button
               onClick={handleSkipExercise}
-              className="bg-orange-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-orange-600 transition-all"
+              className="bg-orange-500 dark:bg-orange-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-orange-600 dark:hover:bg-orange-700 transition-all"
             >
               {currentExercise.duration ? '⏭️ SKIP' : '✓ NEXT'}
             </button>
-            
+
             <button
               onClick={handleQuit}
-              className="bg-red-500/80 text-white px-8 py-4 rounded-xl font-bold hover:bg-red-600 transition-all"
+              className="bg-red-500/80 dark:bg-red-600/80 text-white px-8 py-4 rounded-xl font-bold hover:bg-red-600 dark:hover:bg-red-700 transition-all"
             >
               ❌ QUIT
             </button>

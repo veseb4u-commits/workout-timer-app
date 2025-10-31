@@ -27,16 +27,16 @@ export default function AuthHeader() {
             <span>Welcome, Guest</span>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {user && (
             <>
               <Link href="/history">
-                <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+                <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2">
                   📊 History
                 </button>
               </Link>
               <Link href="/favorites">
-                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2">
                   ⭐ Favorites
                 </button>
               </Link>
@@ -45,13 +45,13 @@ export default function AuthHeader() {
           {user ? (
             <button
               onClick={handleSignOut}
-              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all"
+              className="bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-lg font-medium transition-all"
             >
               Sign Out
             </button>
           ) : (
             <Link href="/login">
-              <button className="bg-white hover:bg-gray-100 text-purple-600 px-4 py-2 rounded-lg font-medium transition-all">
+              <button className="bg-white hover:bg-gray-100 text-purple-600 px-4 py-3 rounded-lg font-medium transition-all">
                 Sign In
               </button>
             </Link>

@@ -30,18 +30,18 @@ export default function LoginPage() {
   if (sent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-6">
-        <div className="bg-white rounded-xl p-8 max-w-md w-full text-center">
+        <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">📧</div>
-          <h1 className="text-3xl font-bold mb-4">Check your email!</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-3xl font-bold text-white mb-4">Check your email!</h1>
+          <p className="text-gray-300 mb-6">
             We've sent a magic link to <strong>{email}</strong>
           </p>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-400 mb-6">
             Click the link in the email to log in. You can close this page.
           </p>
           <button
             onClick={() => router.push('/')}
-            className="text-purple-600 hover:text-purple-700 font-medium"
+            className="text-purple-400 hover:text-purple-300 font-medium"
           >
             ← Back to Home
           </button>
@@ -52,13 +52,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-6">
-      <div className="bg-white rounded-xl p-8 max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-2">Welcome!</h1>
-        <p className="text-gray-600 mb-6">Enter your email to get started</p>
+      <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full">
+        <h1 className="text-3xl font-bold text-white mb-2">Welcome!</h1>
+        <p className="text-gray-300 mb-6">Enter your email to get started</p>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
               Email Address
             </label>
             <input
@@ -68,12 +68,12 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-4 p-3 bg-red-900 border border-red-700 rounded-lg text-red-200 text-sm">
               {error}
             </div>
           )}
@@ -90,7 +90,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <button
             onClick={() => router.push('/')}
-            className="text-gray-600 hover:text-gray-800 text-sm"
+            className="text-gray-400 hover:text-gray-200 text-sm"
           >
             ← Back to Home
           </button>

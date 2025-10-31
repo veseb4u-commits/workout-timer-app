@@ -138,10 +138,10 @@ export default function HistoryPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+        <div className="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔒</div>
-          <h1 className="text-3xl font-bold mb-4">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-3xl font-bold text-white mb-4">Sign In Required</h1>
+          <p className="text-gray-300 mb-6">
             You need to be signed in to view your workout history.
           </p>
           <Link href="/login">
@@ -172,38 +172,38 @@ export default function HistoryPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-6 text-center">
-            <div className="text-4xl font-bold text-purple-600 mb-2">
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <div className="text-4xl font-bold text-purple-400 mb-2">
               {stats.totalWorkouts}
             </div>
-            <div className="text-gray-600 font-medium">Total Workouts</div>
+            <div className="text-gray-300 font-medium">Total Workouts</div>
           </div>
-          <div className="bg-white rounded-xl p-6 text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <div className="text-4xl font-bold text-blue-400 mb-2">
               {stats.totalTimeMinutes}
             </div>
-            <div className="text-gray-600 font-medium">Minutes Exercised</div>
+            <div className="text-gray-300 font-medium">Minutes Exercised</div>
           </div>
-          <div className="bg-white rounded-xl p-6 text-center">
-            <div className="text-4xl font-bold text-green-600 mb-2">
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <div className="text-4xl font-bold text-green-400 mb-2">
               {stats.currentStreak} 🔥
             </div>
-            <div className="text-gray-600 font-medium">Day Streak</div>
+            <div className="text-gray-300 font-medium">Day Streak</div>
           </div>
-          <div className="bg-white rounded-xl p-6 text-center">
-            <div className="text-2xl font-bold text-orange-600 mb-2">
+          <div className="bg-gray-800 rounded-xl p-6 text-center">
+            <div className="text-2xl font-bold text-orange-400 mb-2">
               {stats.favoriteType === 'circuit' ? '⚡ Circuit' : '💪 Classic'}
             </div>
-            <div className="text-gray-600 font-medium">Favorite Type</div>
+            <div className="text-gray-300 font-medium">Favorite Type</div>
           </div>
         </div>
 
         {/* History List */}
         {history.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center">
+          <div className="bg-gray-800 rounded-2xl p-12 text-center">
             <div className="text-6xl mb-4">🏃</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">No workout history yet</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">No workout history yet</h2>
+            <p className="text-gray-300 mb-6">
               Complete your first workout to start tracking your progress!
             </p>
             <div className="flex gap-4 justify-center">
@@ -222,26 +222,26 @@ export default function HistoryPage() {
         ) : (
           <div className="space-y-3">
             {history.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl p-6 shadow-lg">
+              <div key={item.id} className="bg-gray-800 rounded-xl p-6 shadow-lg">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800 mb-1">
+                    <h3 className="text-xl font-bold text-white mb-1">
                       {item.workout_name}
                     </h3>
                     <div className="flex gap-2 flex-wrap mb-2">
-                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                      <span className="px-3 py-1 bg-purple-900 text-purple-200 rounded-full text-sm font-medium">
                         {item.workout_type === 'circuit' ? '⚡ Circuit' : '💪 Classic'}
                       </span>
                       {item.level && (
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                        <span className="px-3 py-1 bg-blue-900 text-blue-200 rounded-full text-sm font-medium">
                           Level {item.level}
                         </span>
                       )}
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                      <span className="px-3 py-1 bg-green-900 text-green-200 rounded-full text-sm font-medium">
                         ⏱️ {formatDuration(item.duration_seconds)}
                       </span>
                     </div>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-gray-400 text-sm">
                       {formatDate(item.completed_at)}
                     </p>
                   </div>
