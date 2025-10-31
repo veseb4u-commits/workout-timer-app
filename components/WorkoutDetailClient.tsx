@@ -148,7 +148,7 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
         {/* Instruction Text */}
         <div className="text-center">
           <p className="text-2xl text-white font-bold">
-            Build workout timer
+            Workout timer
           </p>
         </div>
 
@@ -356,11 +356,37 @@ export default function WorkoutDetailClient({ workout, exercises, levels }: Prop
           )}
 
           {!workout.has_levels && (
-            <Link href={`/play/${workout.id}`}>
-              <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg hover:shadow-xl transition-all">
-                START WORKOUT
-              </button>
-            </Link>
+            <>
+              {/* Exercise List for Classic Workouts */}
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white mb-4">Exercises ({exercises.length})</h2>
+                <div className="space-y-3">
+                  {exercises.map((exercise: any, index: number) => (
+                    <div key={exercise.id} className="bg-gray-700/50 rounded-lg p-4 flex items-center gap-4">
+                      <div className="flex-shrink-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white font-medium text-lg">{exercise.name}</p>
+                        <p className="text-purple-200 text-sm mt-1">
+                          {exercise.duration
+                            ? `${exercise.duration} seconds`
+                            : exercise.reps
+                            ? `${exercise.reps} reps`
+                            : 'At your own pace'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Link href={`/play/${workout.id}`}>
+                <button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg hover:shadow-xl transition-all">
+                  START WORKOUT
+                </button>
+              </Link>
+            </>
           )}
         </div>
         </div>
