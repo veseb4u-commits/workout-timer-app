@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 // Simple in-memory rate limiting (for production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Only rate limit auth endpoints
   if (request.nextUrl.pathname.startsWith('/auth/')) {
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'anonymous'

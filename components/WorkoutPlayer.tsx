@@ -6,15 +6,19 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
 // Wake Lock for keeping screen on
-let wakeLock: any = null
+interface WakeLock {
+  release: () => Promise<void>
+}
+
+let wakeLock: WakeLock | null = null
 let audioContext: AudioContext | null = null
-let oscillator: OscillatorNode | null = null
+let whiteNoiseSource: AudioBufferSourceNode | null = null
 let gainNode: GainNode | null = null
 
 async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
-      wakeLock = await (navigator as any).wakeLock.request('screen')
+      wakeLock = await navigator.wakeLock.request('screen')
       console.log('Wake Lock activated')
     } else {
       // Fallback for iOS: use silent audio
@@ -36,24 +40,35 @@ function startSilentAudio() {
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     audioContext = new AudioContextClass()
 
-    // Create a very low frequency oscillator (inaudible)
-    oscillator = audioContext.createOscillator()
+    // Create a buffer for white noise
+    const bufferSize = 2 * audioContext.sampleRate
+    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate)
+    const output = buffer.getChannelData(0)
+
+    // Generate white noise
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1
+    }
+
+    // Create buffer source instead of oscillator for white noise
+    whiteNoiseSource = audioContext.createBufferSource()
+    whiteNoiseSource.buffer = buffer
+    whiteNoiseSource.loop = true
+
+    // Create gain node for volume control
     gainNode = audioContext.createGain()
 
-    // Set frequency to 20Hz (below human hearing range of ~20Hz-20kHz)
-    oscillator.frequency.value = 20
-
-    // Set to extremely low volume (essentially silent)
+    // Set to extremely low volume (essentially silent but still active)
     gainNode.gain.value = 0.001
 
     // Connect nodes
-    oscillator.connect(gainNode)
+    whiteNoiseSource.connect(gainNode)
     gainNode.connect(audioContext.destination)
 
-    // Start the oscillator
-    oscillator.start()
+    // Start the white noise
+    whiteNoiseSource.start()
 
-    console.log('Silent audio started for iOS wake lock')
+    console.log('Silent white noise started for wake lock')
   } catch (err) {
     console.log('Silent audio error:', err)
   }
@@ -67,10 +82,14 @@ function releaseWakeLock() {
   }
 
   // Stop silent audio
-  if (oscillator) {
-    oscillator.stop()
-    oscillator.disconnect()
-    oscillator = null
+  if (whiteNoiseSource) {
+    try {
+      whiteNoiseSource.stop()
+      whiteNoiseSource.disconnect()
+    } catch (err) {
+      console.log('Error stopping white noise:', err)
+    }
+    whiteNoiseSource = null
   }
   if (gainNode) {
     gainNode.disconnect()
@@ -100,8 +119,17 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   }
 }
 
+function sanitizeText(text: string): string {
+  // Remove any HTML tags and special characters that could be malicious
+  // Keep only alphanumeric, spaces, and basic punctuation
+  return text.replace(/<[^>]*>/g, '').replace(/[^\w\s,.-]/g, '').trim()
+}
+
 function speak(text: string, skipCancel = false) {
   if ('speechSynthesis' in window) {
+    // Sanitize input to prevent XSS attacks
+    const sanitizedText = sanitizeText(text)
+
     // Only cancel if not skipping (allows "Get ready" to finish)
     if (!skipCancel) {
       window.speechSynthesis.cancel()
@@ -119,7 +147,7 @@ function speak(text: string, skipCancel = false) {
       }
     }
 
-    const utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(sanitizedText)
     if (selectedVoice) {
       utterance.voice = selectedVoice
     }
@@ -144,8 +172,20 @@ type Exercise = {
   exercise_order: number
 }
 
+type WorkoutLevel = {
+  level: number
+  sets: number
+}
+
+type Workout = {
+  id: string
+  name: string
+  type: string
+  workout_levels?: WorkoutLevel[]
+}
+
 type Props = {
-  workout: any
+  workout: Workout
   exercises: Exercise[]
   level?: number
   restDuration?: number
@@ -165,7 +205,7 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
   const [workoutStartTime, setWorkoutStartTime] = useState<number | null>(null)
 
   const currentExercise = exercises[currentExerciseIndex]
-  const totalRounds = level ? workout.workout_levels?.find((l: any) => l.level === level)?.sets : 1
+  const totalRounds = level ? workout.workout_levels?.find((l) => l.level === level)?.sets ?? 1 : 1
   const totalExercises = exercises.length
 
   useEffect(() => {
@@ -286,15 +326,24 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
 
     const durationSeconds = Math.floor((Date.now() - workoutStartTime) / 1000)
 
+    // Validate and sanitize inputs before database insertion
+    const sanitizedWorkoutName = sanitizeText(workout.name).substring(0, 255)
+    const sanitizedWorkoutType = sanitizeText(workout.type).substring(0, 100)
+
+    // Validate numeric inputs
+    const validLevel = level && Number.isFinite(level) && level > 0 ? level : null
+    const validRestDuration = Number.isFinite(restDuration) && restDuration >= 0 ? restDuration : 0
+    const validDuration = Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : 0
+
     try {
       await supabase.from('workout_history').insert({
         user_id: user.id,
         workout_id: workout.id,
-        level: level || null,
-        rest_duration: restDuration,
-        duration_seconds: durationSeconds,
-        workout_name: workout.name,
-        workout_type: workout.type,
+        level: validLevel,
+        rest_duration: validRestDuration,
+        duration_seconds: validDuration,
+        workout_name: sanitizedWorkoutName,
+        workout_type: sanitizedWorkoutType,
       })
       console.log('Workout history saved!')
     } catch (error) {
