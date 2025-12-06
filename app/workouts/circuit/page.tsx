@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import ExpandableWorkoutCard from '@/components/ExpandableWorkoutCard'
 
 export default async function CircuitWorkouts() {
   // Fetch circuit workouts from database
@@ -42,32 +43,9 @@ export default async function CircuitWorkouts() {
         </div>
 
         {/* Workout Cards */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-3">
           {workouts?.map((workout) => (
-            <Link key={workout.id} href={`/workouts/${workout.id}`}>
-              <div className="bg-gray-800/80 rounded-lg p-6 shadow-xl hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-300 cursor-pointer backdrop-blur-sm [-webkit-tap-highlight-color:transparent]">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  {workout.name}
-                </h2>
-
-                {/* Exercise List */}
-                {workout.exercises && workout.exercises.length > 0 && (
-                  <div>
-                    <p className="text-white text-sm mb-2">Exercises:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {workout.exercises
-                        .sort((a: any, b: any) => (a.exercise_order || 0) - (b.exercise_order || 0))
-                        .map((ex: any, idx: number) => (
-                          <span key={ex.id}>
-                            <span className="text-white text-xs">{ex.name}</span>
-                            {idx < workout.exercises.length - 1 && <span className="text-white text-xs ml-2">•</span>}
-                          </span>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Link>
+            <ExpandableWorkoutCard key={workout.id} workout={workout} />
           ))}
         </div>
         </div>

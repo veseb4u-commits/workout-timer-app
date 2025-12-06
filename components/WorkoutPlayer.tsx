@@ -6,26 +6,19 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
 // Wake Lock for keeping screen on
-interface WakeLockSentinel {
+interface WakeLock {
   release: () => Promise<void>
 }
 
-interface NavigatorWithWakeLock extends Navigator {
-  wakeLock?: {
-    request: (type: 'screen') => Promise<WakeLockSentinel>
-  }
-}
-
-let wakeLock: WakeLockSentinel | null = null
+let wakeLock: WakeLock | null = null
 let audioContext: AudioContext | null = null
 let whiteNoiseSource: AudioBufferSourceNode | null = null
 let gainNode: GainNode | null = null
 
 async function requestWakeLock() {
   try {
-    const nav = navigator as NavigatorWithWakeLock
-    if ('wakeLock' in nav && nav.wakeLock) {
-      wakeLock = await nav.wakeLock.request('screen')
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen')
       console.log('Wake Lock activated')
     } else {
       // Fallback for iOS: use silent audio
@@ -212,7 +205,7 @@ export default function WorkoutPlayer({ workout, exercises, level, restDuration 
   const [workoutStartTime, setWorkoutStartTime] = useState<number | null>(null)
 
   const currentExercise = exercises[currentExerciseIndex]
-  const totalRounds = level ? workout.workout_levels?.find((l: any) => l.level === level)?.sets : 1
+  const totalRounds = level ? workout.workout_levels?.find((l) => l.level === level)?.sets ?? 1 : 1
   const totalExercises = exercises.length
 
   useEffect(() => {
